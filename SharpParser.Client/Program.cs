@@ -12,6 +12,7 @@ namespace SharpParser.Client
                 .OnError(ErrorHandler)
                 .RetrieveOptions<Options>();
 
+            Console.WriteLine(options.ToString());
             // do stuff with parsed arguments...
         }
 

@@ -2,7 +2,7 @@
   "profiles": {
     "SharpParser.Client": {
       "commandName": "Project",
-      "commandLineArgs": "-vs -n Michal"
+      "commandLineArgs": "-vs -n Michal -i 10"
     }
   }
 }
