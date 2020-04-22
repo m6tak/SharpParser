@@ -8,6 +8,8 @@ namespace SharpParser
 {
     public class Parser
     {
+        #region Properties
+
         private string[] Args { get; }
 
         private bool Valid { get; set; }
@@ -16,18 +18,27 @@ namespace SharpParser
 
         private object Options { get; set; }
 
+        #endregion
+
+        #region Constructor
+
         public Parser(string[] args)
         {
             Args = args;
             Valid = true;
+            ErrorState = string.Empty;
+            Options = null;
         }
+
+        #endregion
+
+        #region ParserFunctionality
 
         public Parser ParseWith<T>() where T : class, new()
         {
             var opts = new T();
             var props = GetFullPropertyInfo(typeof(T));
             var args = GetNormalizedArgs().ToList();
-
             var optVal = new Dictionary<PropertyInfo, object>();
             var help = false;
 
@@ -65,6 +76,7 @@ namespace SharpParser
                 }
             }
 
+            // if help is requested there is no need to search for other arguments
             if (!help)
             {
                 // handle required arguments
@@ -86,10 +98,15 @@ namespace SharpParser
                 }
             }
 
-            
+            // if there are any arguments left, they are unknown, hence error
+            if (args.Count > 0)
+            {
+                Valid = false;
+                ErrorState = args.Aggregate("Unknown arguments:", (current, arg) => current += $" {arg}");
+                return this;
+            }
 
-            
-
+            // set all properties in Options object
             foreach (var (prop, val) in optVal)
             {
                 prop.SetValue(opts, val);
@@ -109,9 +126,13 @@ namespace SharpParser
 
         public T RetrieveOptions<T>() where T : class
         {
-            if (Valid) return (T) Options;
+            if (Valid) return (T)Options;
             return null;
         }
+
+        #endregion
+
+        #region Helpers
 
         private IEnumerable<string> GetNormalizedArgs()
         {
@@ -121,7 +142,7 @@ namespace SharpParser
                 if (arg.Substring(0, 2) == "--") normalizedArgs.Add(arg.TrimStart('-').ToUpper());
                 else if (arg[0] == '-')
                 {
-                    
+
                     var trimmed = arg.TrimStart('-');
                     if (trimmed.Length > 1)
                     {
@@ -141,7 +162,7 @@ namespace SharpParser
             foreach (var prop in classType.GetProperties())
             {
                 var attr = (Option)Attribute.GetCustomAttribute(prop, typeof(Option));
-                var aliases = new List<string> {attr.Name.ToUpper(), attr.Alias.ToUpper()};
+                var aliases = new List<string> { attr.Name.ToUpper(), attr.Alias.ToUpper() };
                 propsAttrs.Add(new Property
                 {
                     Aliases = aliases,
@@ -162,10 +183,12 @@ namespace SharpParser
         private struct Property
         {
             public List<string> Aliases { get; set; }
-            
+
             public Option Option { get; set; }
 
             public PropertyInfo PropInfo { get; set; }
         }
+
+        #endregion
     }
 }
