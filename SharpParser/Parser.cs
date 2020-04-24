@@ -167,9 +167,9 @@ namespace SharpParser
                     var trimmed = arg.TrimStart('-');
                     if (trimmed.Length > 1)
                     {
-                        normalizedArgs.AddRange(trimmed.ToCharArray().Select(c => c.ToString().ToUpper()));
+                        normalizedArgs.AddRange(trimmed.ToCharArray().Select(c => c.ToString()));
                     }
-                    else normalizedArgs.Add(trimmed.ToUpper());
+                    else normalizedArgs.Add(trimmed);
                 }
                 else normalizedArgs.Add(arg);
             }
