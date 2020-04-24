@@ -38,8 +38,28 @@ namespace SharpParser
             var opts = new T();
             var props = GetFullPropertyInfo(typeof(T));
             var args = GetNormalizedArgs().ToList();
-            var optVal = new Dictionary<Property, object>();
+
+            var optVal = GetOptionValues(props, args);
+
+            if (!Valid || optVal == null) return this;
+
+            // set all properties in Options object
+            foreach (var (prop, val) in optVal)
+            {
+                prop.PropInfo.SetValue(opts, val);
+            }
+
+            Options = opts;
+            return this;
+        }
+
+        private Dictionary<Property, object> GetOptionValues(IEnumerable<Property> properties, IEnumerable<string> arguments)
+        {
             var help = false;
+
+            var res = new Dictionary<Property, object>();
+            var props = properties.ToList();
+            var args = arguments.ToList();
 
             // handle optional arguments
             foreach (var p in props.Where(prop => !prop.Option.Required))
@@ -49,36 +69,36 @@ namespace SharpParser
                 {
                     if (p.PropInfo.PropertyType == typeof(bool))
                     {
-                        optVal.Add(p, false);
+                        res.Add(p, false);
                     }
                     else
                     {
-                        optVal.Add(p, null);
+                        res.Add(p, null);
                     }
                 }
                 else
                 {
                     if (p.Option.Name == "help") help = true;
                     // check if any other group arguments are not already applied. If there are any throw error
-                    var opt = optVal.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
-                    var properties = opt as Property[] ?? opt.ToArray();
-                    if (properties.Length > 0)
+                    var opt = res.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
+                    var usedProps = opt as Property[] ?? opt.ToArray();
+                    if (usedProps.Length > 0)
                     {
-                        ErrorState = $"You cant use -{p.Option.Alias} with -{properties.ElementAt(0).Option.Alias}";
+                        ErrorState = $"You cant use -{p.Option.Alias} with -{usedProps.ElementAt(0).Option.Alias}";
                         Valid = false;
-                        return this;
+                        return null;
                     }
                     var argIndex = args.FindIndex(a => p.Aliases.Any(alias => alias.Contains(a)));
                     if (p.PropInfo.PropertyType == typeof(bool))
                     {
-                        optVal.Add(p, true);
+                        res.Add(p, true);
                         args.RemoveAt(argIndex);
                     }
                     else
                     {
                         var argVal = args[argIndex + 1];
                         var convertedVal = Convert.ChangeType(argVal, p.PropInfo.PropertyType);
-                        optVal.Add(p, convertedVal);
+                        res.Add(p, convertedVal);
                         args.RemoveRange(argIndex, 2);
                     }
                 }
@@ -95,33 +115,26 @@ namespace SharpParser
                     {
                         Valid = false;
                         ErrorState = $"Missing argument: {p.Option.Name}";
-                        return this;
+                        return null;
                     }
 
                     var argIndex = args.FindIndex(a => p.Aliases.Any(alias => alias.Contains(a)));
                     var argValue = args[argIndex + 1];
                     var convertedVal = Convert.ChangeType(argValue, p.PropInfo.PropertyType);
-                    optVal.Add(p, convertedVal);
+                    res.Add(p, convertedVal);
                     args.RemoveRange(argIndex, 2);
                 }
             }
 
+            
+            if (args.Count <= 0) return res;
+
+
             // if there are any arguments left, they are unknown, hence error
-            if (args.Count > 0)
-            {
-                Valid = false;
-                ErrorState = args.Aggregate("Unknown arguments:", (current, arg) => current += $" {arg}");
-                return this;
-            }
+            Valid = false;
+            ErrorState = args.Aggregate("Unknown arguments:", (current, arg) => current += $" {arg}");
+            return null;
 
-            // set all properties in Options object
-            foreach (var (prop, val) in optVal)
-            {
-                prop.PropInfo.SetValue(opts, val);
-            }
-
-            Options = opts;
-            return this;
         }
 
         public Parser OnError(Action<string> handler)
