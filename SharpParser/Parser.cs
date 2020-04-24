@@ -183,7 +183,7 @@ namespace SharpParser
             foreach (var prop in classType.GetProperties())
             {
                 var attr = (Option)Attribute.GetCustomAttribute(prop, typeof(Option));
-                var aliases = new List<string> { attr.Name.ToUpper(), attr.Alias.ToUpper() };
+                var aliases = new List<string> { attr.Name.ToUpper(), attr.Alias };
                 propsAttrs.Add(new Property
                 {
                     Aliases = aliases,
