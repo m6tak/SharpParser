@@ -5,7 +5,7 @@ SharpParser is simple, idiomatic argument parser for .NET applications.
 
 ### Arguments model
 First you need to define model of your arguments. You can do this with **simple class** combined with **attribute** provided by SharpParser like so:  
-```
+```c#
 class Options
 {
     // Group attribute lets you group your arguments so user cannot use two arguments
@@ -32,7 +32,7 @@ class Options
 
 ### Parsing
 Parser is very simple and intuitive
-```
+```c#
 class Program
 {
     // get help message generated for your arguments model
@@ -81,10 +81,9 @@ Goodbye
 
 ### Auto generated help message
 With you model you can also specify help text which is than used to generate simple help message.
-```
-private string _programManual = Parser.ConstructBasicManual<Options>();
-
-Console.WriteLine(_programManual);
+```c#
+var programManual = Parser.ConstructBasicManual<Options>();
+Console.WriteLine(programManual);
 ```
 
 Will generate following message for our options
