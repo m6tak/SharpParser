@@ -38,7 +38,7 @@ namespace SharpParser
             var opts = new T();
             var props = GetFullPropertyInfo(typeof(T));
             var args = GetNormalizedArgs().ToList();
-            var optVal = new Dictionary<PropertyInfo, object>();
+            var optVal = new Dictionary<Property, object>();
             var help = false;
 
             // handle optional arguments
@@ -47,13 +47,22 @@ namespace SharpParser
                 var present = p.Aliases.Any(alias => args.Contains(alias));
                 if (!present)
                 {
+                    // check if any other group arguments are not already applied. If there are any throw error
+                    var opt = optVal.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
+                    var properties = opt as Property[] ?? opt.ToArray();
+                    if (properties.Length > 0)
+                    {
+                        ErrorState = $"You cant use {p.Option.Alias} with {properties.ElementAt(0)}";
+                        Valid = false;
+                        return this;
+                    }
                     if (p.PropInfo.PropertyType == typeof(bool))
                     {
-                        optVal.Add(p.PropInfo, false);
+                        optVal.Add(p, false);
                     }
                     else
                     {
-                        optVal.Add(p.PropInfo, null);
+                        optVal.Add(p, null);
                     }
                 }
                 else
@@ -62,14 +71,14 @@ namespace SharpParser
                     var argIndex = args.FindIndex(a => p.Aliases.Any(alias => alias.Contains(a)));
                     if (p.PropInfo.PropertyType == typeof(bool))
                     {
-                        optVal.Add(p.PropInfo, true);
+                        optVal.Add(p, true);
                         args.RemoveAt(argIndex);
                     }
                     else
                     {
                         var argVal = args[argIndex + 1];
                         var convertedVal = Convert.ChangeType(argVal, p.PropInfo.PropertyType);
-                        optVal.Add(p.PropInfo, convertedVal);
+                        optVal.Add(p, convertedVal);
                         args.RemoveRange(argIndex, 2);
                     }
                 }
@@ -92,7 +101,7 @@ namespace SharpParser
                     var argIndex = args.FindIndex(a => p.Aliases.Any(alias => alias.Contains(a)));
                     var argValue = args[argIndex + 1];
                     var convertedVal = Convert.ChangeType(argValue, p.PropInfo.PropertyType);
-                    optVal.Add(p.PropInfo, convertedVal);
+                    optVal.Add(p, convertedVal);
                     args.RemoveRange(argIndex, 2);
                 }
             }
@@ -108,7 +117,7 @@ namespace SharpParser
             // set all properties in Options object
             foreach (var (prop, val) in optVal)
             {
-                prop.SetValue(opts, val);
+                prop.PropInfo.SetValue(opts, val);
             }
 
             Options = opts;
