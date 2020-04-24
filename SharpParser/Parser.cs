@@ -80,7 +80,7 @@ namespace SharpParser
                 {
                     if (p.Option.Name == "help") help = true;
                     // check if any other group arguments are not already applied. If there are any throw error
-                    var opt = res.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
+                    var opt = res.Keys.Where(o =>!o.Option.Group.Equals("none") && o.Option.Group.Equals(p.Option.Group));
                     var usedProps = opt as Property[] ?? opt.ToArray();
                     if (usedProps.Length > 0)
                     {
@@ -119,7 +119,7 @@ namespace SharpParser
                     }
 
                     // check if any other group arguments are not already applied. If there are any throw error
-                    var opt = res.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
+                    var opt = res.Keys.Where(o => !o.Option.Group.Equals("none") && o.Option.Group.Equals(p.Option.Group));
                     var usedProps = opt as Property[] ?? opt.ToArray();
                     if (usedProps.Length > 0)
                     {
