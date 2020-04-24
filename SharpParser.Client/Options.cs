@@ -2,10 +2,10 @@
 {
     class Options
     {
-        [Option("v", "verbose", Help = "Detailed program output")]
+        [Option("v", "verbose", Help = "Detailed program output", Group = "Group")]
         public bool Verbose { get; set; }
 
-        [Option("s", "switch", Help = "Some switch")]
+        [Option("s", "switch", Help = "Some switch", Group = "Group")]
         public bool OtherSwitch { get; set; }
 
         [Option("n", "name", Help = "Your name", Required = true)]

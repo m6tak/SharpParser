@@ -47,15 +47,6 @@ namespace SharpParser
                 var present = p.Aliases.Any(alias => args.Contains(alias));
                 if (!present)
                 {
-                    // check if any other group arguments are not already applied. If there are any throw error
-                    var opt = optVal.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
-                    var properties = opt as Property[] ?? opt.ToArray();
-                    if (properties.Length > 0)
-                    {
-                        ErrorState = $"You cant use {p.Option.Alias} with {properties.ElementAt(0)}";
-                        Valid = false;
-                        return this;
-                    }
                     if (p.PropInfo.PropertyType == typeof(bool))
                     {
                         optVal.Add(p, false);
@@ -68,6 +59,15 @@ namespace SharpParser
                 else
                 {
                     if (p.Option.Name == "help") help = true;
+                    // check if any other group arguments are not already applied. If there are any throw error
+                    var opt = optVal.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
+                    var properties = opt as Property[] ?? opt.ToArray();
+                    if (properties.Length > 0)
+                    {
+                        ErrorState = $"You cant use -{p.Option.Alias} with -{properties.ElementAt(0).Option.Alias}";
+                        Valid = false;
+                        return this;
+                    }
                     var argIndex = args.FindIndex(a => p.Aliases.Any(alias => alias.Contains(a)));
                     if (p.PropInfo.PropertyType == typeof(bool))
                     {
