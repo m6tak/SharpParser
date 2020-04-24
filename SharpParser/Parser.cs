@@ -118,6 +118,16 @@ namespace SharpParser
                         return null;
                     }
 
+                    // check if any other group arguments are not already applied. If there are any throw error
+                    var opt = res.Keys.Where(o => o.Option.Group.Equals(p.Option.Group));
+                    var usedProps = opt as Property[] ?? opt.ToArray();
+                    if (usedProps.Length > 0)
+                    {
+                        ErrorState = $"You cant use -{p.Option.Alias} with -{usedProps.ElementAt(0).Option.Alias}";
+                        Valid = false;
+                        return null;
+                    }
+
                     var argIndex = args.FindIndex(a => p.Aliases.Any(alias => alias.Contains(a)));
                     var argValue = args[argIndex + 1];
                     var convertedVal = Convert.ChangeType(argValue, p.PropInfo.PropertyType);
