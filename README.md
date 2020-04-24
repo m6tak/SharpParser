@@ -80,7 +80,7 @@ Goodbye
 ```
 
 ### Auto generated help message
-With you model you can also specify help text which is than used to generate simple help message.
+With your model you can also specify help text which is than used to generate simple help message.
 ```c#
 var programManual = Parser.ConstructBasicManual<Options>();
 Console.WriteLine(programManual);
